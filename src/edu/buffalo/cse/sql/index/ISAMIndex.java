@@ -1,6 +1,8 @@
-
 package edu.buffalo.cse.sql.index;
 
+/**
+ * import statements
+ * */
 import java.awt.List;
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +13,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import edu.buffalo.cse.sql.Schema;
 import edu.buffalo.cse.sql.SqlException;
 import edu.buffalo.cse.sql.data.Datum;
@@ -23,44 +24,57 @@ import edu.buffalo.cse.sql.buffer.BufferException;
 import edu.buffalo.cse.sql.buffer.ManagedFile;
 import edu.buffalo.cse.sql.buffer.FileManager;
 import edu.buffalo.cse.sql.test.TestDataStream;
+
+
+/**
+ * public class implementation for ISAMIndex.
+ * @author: Ankur Upadhyay, Research Assistant, Univesity at Buffalo.
+ * */
  
 public class ISAMIndex implements IndexFile {
   
-	public ManagedFile file;
-	public IndexKeySpec keySpec;
+  /**
+   *  Managed File object corresponds to the single file on the disk, and gives us the per
+   * page access to the file
+   * */
+    public ManagedFile file;
+    /**
+     * IndexKeySpec gives us the relationship between the index keys and the data tuples.
+     * */
+    public IndexKeySpec keySpec;
 	
-	
-	
-  public ISAMIndex(ManagedFile file, IndexKeySpec keySpec)
-    throws IOException, SqlException
-  {
+    /**
+     * Constructor Definitions
+     * */
+    public ISAMIndex(){}	
+    public ISAMIndex(ManagedFile file, IndexKeySpec keySpec)
+     			throws IOException, SqlException{
 	  this.file = file;
 	  this.keySpec = keySpec;
-	  
-	  
-	  // throw new SqlException("Unimplemented");
-  }
+    } 
   
+  /**
+   * public method to create the ISAM index fromt he file containing the data tuples.
+   * */
   public static ISAMIndex create(FileManager fm,
                                  File path,
                                  Iterator<Datum[]> dataSource,
                                  IndexKeySpec key)
-    //throws SqlException, IOException
   {
 	  try{
-		  ManagedFile managedFile = fm.open(path);
-		  int numberOfDataPages = 0;
-		  int numberOfNodePages = 0;
-		  Map<Integer, Datum[]> nodePages = new LinkedHashMap<Integer, Datum[]>();
-		 
-		  //new code
-		  Map<Datum, Datum[]> pageRecords = new LinkedHashMap<Datum, Datum[]>();
+		  ManagedFile managedFile = fm.open(path); //opens the file and return  the pointer to the opened file
+		  int numberOfDataPages = 0; //number of data pages i.e. leaf nodes in the ISAM index
+		  int numberOfNodePages = 0; //number of index node pages i.e. the nodes that leads to the leaf nodes containing the actual data 
+		  Map<Integer, Datum[]> nodePages = new LinkedHashMap<Integer, Datum[]>(); //LinkedHashMap for keeping the mapping of index node pages
+											   // and the records		 
+		  Map<Datum, Datum[]> pageRecords = new LinkedHashMap<Datum, Datum[]>(); //LinkedHashMap for keeping the mapping of the data page nodes
+		  									 //and the records
 		  
-		  managedFile.ensureSize(numberOfDataPages+1);
-		  DatumBuffer datumNodeBuffer = null;
-		  DatumBuffer datumDataBuffer = null;
-		  Datum[] lastDataWritten = null;
-		  Datum[] row = null;
+		  managedFile.ensureSize(numberOfDataPages+1); //ensure the size of the file to the numberOfDatapages.
+		  DatumBuffer datumNodeBuffer = null; //DatumBuffer for writing to ISAM index nodes
+		  DatumBuffer datumDataBuffer = null; //DatumBuffer for writing to ISAM data page nodes
+		  Datum[] lastDataWritten = null; //variable for keeping track of the last set of data written
+		  Datum[] row = null; 
 		  int schema_length = 0;
 		  Schema.Type[] column_type = null;
 		  int leaf_pages;
